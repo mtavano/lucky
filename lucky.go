@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/rodrwan/lucky/model"
+	"github.com/mtavano/lucky/model"
 )
 
 var (

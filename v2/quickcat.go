@@ -16,7 +16,7 @@ import (
 	"unicode/utf8"
 )
 
-const Dim = 1 << 20 // feature space size (hashing trick)
+const Dim = 1 << 16 // feature space size (hashing trick) - 65K en lugar de 1M
 
 type Model struct {
 	Centroids map[uint][]float64 `json:"centroids"` // categoryID -> centroid vector

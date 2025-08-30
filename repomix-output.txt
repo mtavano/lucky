@@ -1,0 +1,2253 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+
+================================================================
+Directory Structure
+================================================================
+cli/
+  quickcat.go
+db/
+  categories.go
+  training.go
+input/
+  categories.json
+  labels_categories.json
+model/
+  files.go
+  fit.go
+  maps.go
+  model_test.go
+  predict.go
+  sample.go
+ngrams/
+  ngrams_test.go
+  ngrams.go
+v2/
+  quickcat.go
+.gitignore
+lucky_test.go
+lucky.go
+README.md
+samples.py
+
+================================================================
+Files
+================================================================
+
+================
+File: cli/quickcat.go
+================
+package main
+
+import (
+	"flag"
+	"log"
+
+	quickcat "github.com/mtavano/lucky/v2"
+)
+
+func main() {
+	cmd := flag.String("cmd", "train", "train|predict|eval")
+	labels := flag.String("labels", "labels.txt", "labels file path (id#name)")
+	data := flag.String("data", "train.txt", "training data (id#text)")
+	modelPath := flag.String("model", "model.json", "model output/input")
+	threshold := flag.Float64("thr", 0.60, "prediction threshold (cosine)")
+	topk := flag.Int("topk", 3, "top-k predictions")
+	flag.Parse()
+
+	switch *cmd {
+	case "train":
+		quickcat.RunTrain(*labels, *data, *modelPath)
+	case "predict":
+		quickcat.RunPredict(*modelPath, *threshold, *topk)
+	case "eval":
+		quickcat.RunEval(*labels, *data, *threshold)
+	default:
+		log.Fatalf("unknown cmd: %s", *cmd)
+	}
+}
+
+================
+File: input/categories.json
+================
+{
+  "1": "Cuentas y Servicios",
+  "2": "Deporte",
+  "3": "Educación",
+  "4": "Entretenimiento",
+  "5": "Hogar y Tech",
+  "6": "Inversiones",
+  "7": "Por categorizar",
+  "8": "Restaurantes, bares y delivery",
+  "9": "Salud",
+  "10": "Shopping",
+  "11": "Transporte",
+  "12": "Viajes",
+  "13": "Víveres",
+  "14": "Otros"
+}
+
+================
+File: input/labels_categories.json
+================
+{
+  "27": 1,
+  "26": 1,
+  "28": 1,
+  "29": 1,
+  "30": 1,
+  "91": 1,
+  "92": 1,
+  "97": 1,
+  "98": 1,
+  "170": 1,
+  "171": 1,
+  "172": 1,
+  "84": 1,
+  "77": 1,
+  "94": 1,
+  "85": 1,
+  "86": 1,
+  "10": 2,
+  "11": 2,
+  "12": 2,
+  "13": 2,
+  "105": 2,
+  "14": 3,
+  "15": 3,
+  "16": 3,
+  "17": 3,
+  "18": 3,
+  "19": 3,
+  "20": 3,
+  "21": 3,
+  "22": 3,
+  "106": 3,
+  "107": 3,
+  "108": 3,
+  "132": 3,
+  "23": 4,
+  "24": 4,
+  "25": 4,
+  "109": 4,
+  "110": 4,
+  "111": 4,
+  "113": 4,
+  "31": 5,
+  "32": 5,
+  "33": 5,
+  "34": 5,
+  "35": 5,
+  "36": 5,
+  "37": 5,
+  "64": 5,
+  "65": 5,
+  "66": 5,
+  "67": 5,
+  "68": 5,
+  "69": 5,
+  "70": 5,
+  "71": 5,
+  "72": 5,
+  "93": 5,
+  "120": 5,
+  "121": 5,
+  "122": 5,
+  "138": 5,
+  "139": 5,
+  "140": 5,
+  "141": 5,
+  "156": 5,
+  "45": 5,
+  "38": 6,
+  "39": 6,
+  "40": 6,
+  "41": 6,
+  "42": 6,
+  "43": 6,
+  "44": 6,
+  "73": 6,
+  "160": 6,
+  "1": 7,
+  "7": 8,
+  "9": 8,
+  "79": 8,
+  "99": 8,
+  "100": 8,
+  "161": 8,
+  "162": 8,
+  "49": 9,
+  "50": 9,
+  "51": 9,
+  "52": 9,
+  "53": 9,
+  "54": 9,
+  "129": 9,
+  "130": 9,
+  "135": 9,
+  "157": 9,
+  "48": 10,
+  "78": 10,
+  "101": 10,
+  "102": 10,
+  "103": 10,
+  "104": 10,
+  "114": 10,
+  "118": 10,
+  "123": 10,
+  "125": 10,
+  "126": 10,
+  "127": 10,
+  "128": 10,
+  "55": 11,
+  "56": 11,
+  "57": 11,
+  "58": 11,
+  "59": 11,
+  "60": 11,
+  "89": 11,
+  "147": 11,
+  "148": 11,
+  "149": 11,
+  "150": 11,
+  "151": 11,
+  "152": 11,
+  "153": 11,
+  "159": 11,
+  "61": 12,
+  "62": 12,
+  "63": 12,
+  "74": 12,
+  "154": 12,
+  "155": 12,
+  "136": 12,
+  "8": 13,
+  "2": 14,
+  "3": 14,
+  "4": 14,
+  "5": 14,
+  "6": 14,
+  "46": 14,
+  "47": 14,
+  "75": 14,
+  "76": 14,
+  "80": 14,
+  "81": 14,
+  "82": 14,
+  "83": 14,
+  "87": 14,
+  "88": 14,
+  "90": 14,
+  "95": 14,
+  "96": 14,
+  "115": 14,
+  "116": 14,
+  "117": 14,
+  "119": 14,
+  "131": 14,
+  "133": 14,
+  "134": 14,
+  "137": 14,
+  "142": 14,
+  "143": 14,
+  "144": 14,
+  "145": 14,
+  "146": 14,
+  "158": 14
+}
+
+================
+File: v2/quickcat.go
+================
+// main.go
+package v2
+
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"hash/fnv"
+	"log"
+	"math"
+	"os"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+)
+
+const Dim = 1 << 20 // feature space size (hashing trick)
+
+type Model struct {
+	Centroids map[uint][]float64 `json:"centroids"` // categoryID -> centroid vector
+	LabelName map[uint]string    `json:"label_name"`
+	DF        []int              `json:"df"`     // doc freq per hashed index (for IDF)
+	Docs      int                `json:"docs"`   // number of docs used to compute IDF
+	Params    map[string]any     `json:"params"` // metadata (ngrams, τ, etc.)
+}
+
+type Sample struct {
+	Label uint
+	Text  string
+}
+
+// ---------- Normalizer ----------
+
+var amountRe = regexp.MustCompile(`(?:\$|CLP|\bUSD\b)?\s*\d{1,3}(?:[\.\s]\d{3})*(?:,\d{1,2})?`)
+var dateRe = regexp.MustCompile(`\b\d{1,2}[/-]\d{1,2}([/-]\d{2,4})?\b`)
+var codeRe = regexp.MustCompile(`\b[A-Z0-9]{6,}\b`)
+
+func normalize(s string) string {
+	// lowercase + remove accents
+	s = strings.ToLower(stripAccents(s))
+	// placeholders
+	s = amountRe.ReplaceAllString(s, "<amount>")
+	s = dateRe.ReplaceAllString(s, "<date>")
+	s = codeRe.ReplaceAllString(s, "<code>")
+	// simple merchant aliases (extend as needed)
+	s = merchantAlias(s)
+	// remove punctuation (keep slashes & dots that can be signal if needed)
+	builder := strings.Builder{}
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) || unicode.IsSpace(r) || r == '/' || r == '.' {
+			builder.WriteRune(r)
+		} else {
+			builder.WriteRune(' ')
+		}
+	}
+	out := strings.Join(strings.Fields(builder.String()), " ")
+	return out
+}
+
+func stripAccents(s string) string {
+	// simplistic accent removal
+	var b strings.Builder
+	for _, r := range s {
+		decomp := unicode.SimpleFold(r)
+		_ = decomp
+		switch r {
+		case 'á', 'à', 'ä', 'â', 'ã', 'å':
+			r = 'a'
+		case 'é', 'è', 'ë', 'ê':
+			r = 'e'
+		case 'í', 'ì', 'ï', 'î':
+			r = 'i'
+		case 'ó', 'ò', 'ö', 'ô', 'õ':
+			r = 'o'
+		case 'ú', 'ù', 'ü', 'û':
+			r = 'u'
+		case 'ñ':
+			r = 'n'
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
+func merchantAlias(s string) string {
+	repl := []struct{ from, to string }{
+		// existentes / ejemplo
+		{"apl itunes.com/bill", "apple itunes"},
+		{"itunes.com/bill", "apple itunes"},
+		// autopistas/tag (Chile)
+		{"aut. central", "autopista central"},
+		{"autopista central", "autopista central"},
+		{"costanera norte", "autopista costanera norte"},
+		{"vesp. sur", "autopista vespucio sur"},
+		{"vesp sur", "autopista vespucio sur"},
+		{"vespucio sur", "autopista vespucio sur"},
+		{"vespucio norte express", "autopista vespucio norte express"},
+		{"tag vespucio", "autopista tag"},
+		{"pago tag", "autopista tag"},
+		{"prepago tag", "autopista tag"},
+		{"boleta tag", "autopista tag"},
+		{"cobro tag", "autopista tag"},
+	}
+	for _, r := range repl {
+		s = strings.ReplaceAll(s, r.from, r.to)
+	}
+	return s
+}
+
+// ---------- Hashing TF-IDF (char n-grams) ----------
+
+func charNgrams(s string, nMin, nMax int) []string {
+	// add boundaries for better signal
+	s = "^" + s + "$"
+	ngrams := make([]string, 0, len(s)*2)
+	for n := nMin; n <= nMax; n++ {
+		for i := 0; i+n <= len(s); i++ {
+			sub := s[i : i+n]
+			if utf8.ValidString(sub) {
+				ngrams = append(ngrams, sub)
+			}
+		}
+	}
+	return ngrams
+}
+
+func hidx(ng string) int {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(ng))
+	return int(h.Sum32()) & (Dim - 1)
+}
+
+func featurize(doc string, df []int, docs int, nMin, nMax int) (vec map[int]float64) {
+	// term frequencies
+	vec = map[int]float64{}
+	ngrams := charNgrams(doc, nMin, nMax)
+	for _, ng := range ngrams {
+		i := hidx(ng)
+		vec[i] += 1.0
+	}
+	// TF-IDF: tf * log((1+N)/(1+df)) + 1
+	for i, tf := range vec {
+		idf := 1.0
+		if df != nil && docs > 0 {
+			dfi := df[i]
+			idf = math.Log(float64(1+docs)/float64(1+dfi)) + 1.0
+		}
+		vec[i] = tf * idf
+	}
+	// L2 normalize
+	l2 := 0.0
+	for _, v := range vec {
+		l2 += v * v
+	}
+	l2 = math.Sqrt(l2)
+	if l2 > 0 {
+		for i, v := range vec {
+			vec[i] = v / l2
+		}
+	}
+	return
+}
+
+// ---------- Training (centroids) ----------
+
+func RunTrain(labelsPath, dataPath, outPath string) {
+	labelName := readLabels(labelsPath)
+	samples := readData(dataPath)
+
+	// compute DF for IDF
+	df := make([]int, Dim)
+	docs := len(samples)
+	for _, s := range samples {
+		text := normalize(s.Text)
+		seen := map[int]bool{}
+		for idx := range featurize(text, nil, 0, 3, 5) {
+			if !seen[idx] {
+				df[idx] = df[idx] + 1
+				seen[idx] = true
+			}
+		}
+	}
+
+	// accumulate centroids
+	acc := make(map[uint]map[int]float64)
+	count := make(map[uint]int)
+	for _, s := range samples {
+		text := normalize(s.Text)
+		vec := featurize(text, df, docs, 3, 5)
+		if acc[s.Label] == nil {
+			acc[s.Label] = map[int]float64{}
+		}
+		for i, v := range vec {
+			acc[s.Label][i] += v
+		}
+		count[s.Label]++
+	}
+	// average & densify to fixed slice (sparse -> dense is simple here for speed to prod)
+	centroids := make(map[uint][]float64, len(acc))
+	for lab, m := range acc {
+		vec := make([]float64, Dim)
+		c := float64(count[lab])
+		if c == 0 {
+			c = 1
+		}
+		for i, v := range m {
+			vec[i] = v / c
+		}
+		// L2-normalize centroid => cosine scores in [0,1]
+		l2 := 0.0
+		for _, v := range vec {
+			l2 += v * v
+		}
+		l2 = math.Sqrt(l2)
+		if l2 > 0 {
+			for i := range vec {
+				vec[i] /= l2
+			}
+		}
+		centroids[lab] = vec
+	}
+
+	model := &Model{
+		Centroids: centroids,
+		LabelName: labelName,
+		DF:        df,
+		Docs:      docs,
+		Params: map[string]any{
+			"ngrams":     "char(3-5)",
+			"dim":        Dim,
+			"classifier": "centroid-cosine",
+		},
+	}
+	saveModel(outPath, model)
+	fmt.Println("ok: wrote", outPath)
+}
+
+// ---------- Predict ----------
+
+type Pred struct {
+	ID    uint    `json:"id"`
+	Name  string  `json:"name"`
+	Score float64 `json:"score"`
+}
+
+func RunPredict(modelPath string, thr float64, topk int) {
+	m := loadModel(modelPath)
+	in := bufio.NewScanner(os.Stdin)
+	fmt.Println("# enter one transaction description per line:")
+	for in.Scan() {
+		line := strings.TrimSpace(in.Text())
+		if line == "" {
+			continue
+		}
+		preds := predictOne(m, line, topk)
+		best := preds[0]
+		if best.Score < thr {
+			fmt.Printf("{\"id\":0,\"name\":\"UNKNOWN\",\"score\":%.4f,\"topk\":%s}\n", best.Score, mustJSON(preds))
+		} else {
+			fmt.Printf("{\"id\":%d,\"name\":\"%s\",\"score\":%.4f,\"topk\":%s}\n", best.ID, best.Name, best.Score, mustJSON(preds))
+		}
+	}
+}
+
+func predictOne(m *Model, text string, topk int) []Pred {
+	vec := featurize(normalize(text), m.DF, m.Docs, 3, 5)
+	type pair struct {
+		id uint
+		s  float64
+	}
+	bag := make([]pair, 0, len(m.Centroids))
+	for id, c := range m.Centroids {
+		// cosine(vec, c) = sum_i vec[i]*c[i]  (c ya normalizado aprox. por promedio)
+		var dot float64
+		for i, v := range vec {
+			dot += v * c[i]
+		}
+		bag = append(bag, pair{id, dot})
+	}
+	sort.Slice(bag, func(i, j int) bool { return bag[i].s > bag[j].s })
+	if topk > len(bag) {
+		topk = len(bag)
+	}
+	out := make([]Pred, 0, topk)
+	for i := 0; i < topk; i++ {
+		id := bag[i].id
+		out = append(out, Pred{ID: id, Name: m.LabelName[id], Score: bag[i].s})
+	}
+	return out
+}
+
+// ---------- Eval (80/20 quick & dirty) ----------
+
+func RunEval(labelsPath, dataPath string, thr float64) {
+	labelName := readLabels(labelsPath)
+	_ = labelName
+	all := readData(dataPath)
+	byLabel := map[uint][]string{}
+	for _, s := range all {
+		byLabel[s.Label] = append(byLabel[s.Label], s.Text)
+	}
+	var train, test []Sample
+	for lab, arr := range byLabel {
+		n := int(math.Max(1, math.Round(float64(len(arr))*0.8)))
+		for i, t := range arr {
+			if i < n {
+				train = append(train, Sample{Label: lab, Text: t})
+			} else {
+				test = append(test, Sample{Label: lab, Text: t})
+			}
+		}
+	}
+	// build a temp model from 'train'
+	tmpData := filepath.Join(os.TempDir(), "train_split.txt")
+	writeData(tmpData, train)
+	RunTrain(labelsPath, tmpData, "model.tmp.json")
+	m := loadModel("model.tmp.json")
+
+	// evaluate
+	var correct, total, covered int
+	for _, s := range test {
+		best := predictOne(m, s.Text, 1)[0]
+		total++
+		if best.Score >= thr {
+			covered++
+		}
+		if best.ID == s.Label {
+			correct++
+		}
+	}
+	acc := float64(correct) / float64(total)
+	cov := float64(covered) / float64(total)
+	fmt.Printf("accuracy=%.4f coverage@thr=%.4f total=%d\n", acc, cov, total)
+}
+
+// ---------- IO ----------
+
+func readLabels(path string) map[uint]string {
+	f := mustOpen(path)
+	defer f.Close()
+	out := map[uint]string{}
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "#", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		var id uint
+		fmt.Sscanf(parts[0], "%d", &id)
+		out[id] = strings.TrimSpace(parts[1])
+	}
+	return out
+}
+
+func readData(path string) []Sample {
+	f := mustOpen(path)
+	defer f.Close()
+	var out []Sample
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "#", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		var id uint
+		fmt.Sscanf(parts[0], "%d", &id)
+		out = append(out, Sample{Label: id, Text: parts[1]})
+	}
+	return out
+}
+
+func writeData(path string, data []Sample) {
+	f := mustCreate(path)
+	defer f.Close()
+	for _, s := range data {
+		fmt.Fprintf(f, "%d#%s\n", s.Label, s.Text)
+	}
+}
+
+func saveModel(path string, m *Model) {
+	b, _ := json.MarshalIndent(m, "", "  ")
+	_ = os.WriteFile(path, b, 0644)
+}
+
+func loadModel(path string) *Model {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var m Model
+	if err := json.Unmarshal(b, &m); err != nil {
+		log.Fatal(err)
+	}
+	return &m
+}
+
+func mustOpen(p string) *os.File {
+	f, err := os.Open(p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return f
+}
+func mustCreate(p string) *os.File {
+	f, err := os.Create(p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return f
+}
+
+func mustJSON(v any) string {
+	b, _ := json.Marshal(v)
+	return string(b)
+}
+
+================
+File: db/training.go
+================
+package db
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+
+	"github.com/jmoiron/sqlx"
+)
+
+// QueryData bla bla
+type QueryData struct {
+	Description string `db:"description"`
+	Extended    string `db:"extended_description"`
+	Category    int    `db:"sub_category_id"`
+}
+
+// ReadDb connect, read and extract data
+func ReadDb(db *sqlx.DB) (string, error) {
+	file, err := os.Create("training_data.txt")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	query := `
+		SELECT
+			COALESCE(t.description, '') AS description,
+			COALESCE(t.extended_description, '') AS extended_description,
+			t.sub_category_id AS sub_category_id
+		FROM
+			transactions t
+		JOIN sub_categories sc ON t.sub_category_id = sc.id
+		WHERE
+		(
+			t.categorized_by = 'user'
+		OR
+			t.categorized_by = 'category_match'
+		OR
+			t.categorized_by = 'admin'
+		)
+		AND NOT
+		(
+			t.sub_category_id = 1
+		OR
+			t.sub_category_id = 76
+		)
+		AND sc.category_id != 20
+		AND t.ignored = 'f'
+		AND NOT
+		(
+			t.description = 'COMPRA EN EL COMERCIO'
+		OR
+			t.description ~ 'Movimiento fecha'
+		OR
+			t.description ~ 'Transf\.'
+		);
+	`
+
+	rows, err := db.Queryx(query)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	w := bufio.NewWriter(file)
+	for rows.Next() {
+		e := QueryData{}
+
+		if err := rows.StructScan(&e); err != nil {
+			return "", err
+		}
+
+		d := fmt.Sprintf("%d#%s %s", e.Category, e.Description, e.Extended)
+		// fmt.Printf("%s\n", d)
+		fmt.Fprintln(w, d)
+	}
+
+	w.Flush()
+	return "hola", nil
+}
+
+================
+File: model/fit.go
+================
+package model
+
+import (
+	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+
+	"github.com/rodrwan/lucky/ngrams"
+)
+
+// Fit create a map of ngrams from file
+func Fit(path string, procs int, words []string) map[string]*Sample {
+	modelPath := "model.bin"
+	if Exists(modelPath) {
+		m := Load(modelPath)
+		return m
+	}
+
+	newSamples := NewSet()
+	newCats := NewCats()
+
+	inFile, _ := os.Open(path)
+	defer inFile.Close()
+
+	fileBytes, _ := ioutil.ReadFile(path)
+	fileAsString := string(fileBytes)
+	lines := strings.Split(fileAsString, "\n")
+	lines = lines[0 : len(lines)-1]
+	totalLines := len(lines)
+	chunkSize := totalLines / procs
+	rest := totalLines % procs
+	wg := &sync.WaitGroup{}
+
+	for idx := 0; idx < procs; idx++ {
+		chunk := lines[chunkSize*(idx) : chunkSize*(idx+1)+rest]
+		wg.Add(1)
+
+		go func(chunk []string) {
+			for _, line := range chunk {
+				if len(line) == 0 {
+					continue
+				}
+				splitedStr := strings.Split(line, "#")
+				category, description := splitedStr[0], splitedStr[1]
+				total := ngrams.MakeN(description, 3, words)
+				i, err := strconv.Atoi(category)
+				if err != nil {
+					continue
+				}
+
+				for _, value := range total {
+					newCats.Add(uint(i))
+					ok := newSamples.Has(value)
+					if ok {
+						newSamples.Update(value, uint(i))
+					} else {
+						// init
+						sample := &Sample{
+							Ngram:    value,
+							Freq:     1.0,
+							Classes:  make(map[uint]float64),
+							Tfidf:    make(map[uint]float64),
+							Maximum:  0.0,
+							Minimum:  100000000.0,
+							Weighted: false,
+						}
+						newSamples.Add(value, sample, uint(i))
+					}
+				}
+			}
+			wg.Done()
+		}(chunk)
+	}
+	wg.Wait()
+
+	for _, sample := range newSamples.m {
+		sample.toProb()
+	}
+
+	SaveModel(modelPath, newSamples.m)
+	return newSamples.m
+}
+
+================
+File: model/maps.go
+================
+package model
+
+import "sync"
+
+// Set ...
+type Set struct {
+	sync.RWMutex
+	m map[string]*Sample
+}
+
+// Add add
+func (s *Set) Add(key string, sample *Sample, cKey uint) {
+	s.Lock()
+	defer s.Unlock()
+	s.m[key] = sample
+	s.m[key].Classes[cKey]++
+}
+
+// Has ...
+func (s *Set) Has(key string) (ok bool) {
+	s.RLock()
+	defer s.RUnlock()
+	_, ok = s.m[key]
+	return
+}
+
+// Update ...
+func (s *Set) Update(key string, cKey uint) {
+	s.Lock()
+	defer s.Unlock()
+	s.m[key].Classes[cKey]++
+	s.m[key].add()
+}
+
+// NewSet ...
+func NewSet() *Set {
+	return &Set{
+		m: make(map[string]*Sample),
+	}
+}
+
+// Cats ...
+type Cats struct {
+	sync.RWMutex
+	cats map[uint]float64
+}
+
+// Add add
+func (c *Cats) Add(key uint) {
+	c.Lock()
+	defer c.Unlock()
+	c.cats[key]++
+}
+
+// NewCats ...
+func NewCats() *Cats {
+	return &Cats{
+		cats: make(map[uint]float64),
+	}
+}
+
+================
+File: model/predict.go
+================
+package model
+
+import (
+	"strings"
+
+	"github.com/rodrwan/lucky/ngrams"
+)
+
+// BestCategory ...
+type BestCategory struct {
+	ID    uint    // category id
+	Name  string  // category name
+	Score float64 // category prob
+}
+
+// Vote ...
+type Vote struct {
+	Count uint
+	Score float64
+}
+
+// BestGram ...
+type BestGram struct {
+	Gram string
+	Prob float64
+}
+
+// EPSILON ...
+var EPSILON = 0.00000001
+
+func floatEquals(a, b float64) bool {
+	if (a-b) < EPSILON && (b-a) < EPSILON {
+		return true
+	}
+	return false
+}
+
+func maxVote(votes map[uint]*Vote, threshold float64) (uint, float64) {
+	if len(votes) == 0 {
+		return 1, 0.0
+	}
+
+	var maxKey uint
+	var maxCount uint
+	var equals bool
+	var maximum float64
+
+	last := uint(10000)
+	for key, vote := range votes {
+		if last == maxCount {
+			equals = true
+		} else {
+			equals = false
+		}
+		last = maxCount
+
+		if maxCount < vote.Count {
+			maxCount = vote.Count
+			maxKey = key
+		}
+	}
+
+	maximum = votes[maxKey].Score
+
+	if equals {
+		maximum := 0.0
+		last := 10000.0
+		equals = false
+
+		for key, vote := range votes {
+			if floatEquals(last, vote.Score) {
+				equals = true
+			} else {
+				equals = false
+			}
+			last = vote.Score
+
+			if vote.Score > maximum {
+				maximum = vote.Score
+				maxKey = key
+			}
+		}
+	}
+
+	if equals {
+		return 1, 0.0
+	}
+
+	return maxKey, maximum
+}
+
+func getBestGram(grams map[uint]*BestGram) (string, uint, float64) {
+	var maxKey uint
+	var maxGram string
+	var maxProb float64
+
+	for key, value := range grams {
+		if value.Prob > maxProb {
+			maxKey = key
+			maxGram = value.Gram
+			maxProb = value.Prob
+		}
+	}
+	return maxGram, maxKey, maxProb
+}
+
+func createBestGram(grams []string, m map[string]*Sample) map[uint]*BestGram {
+	bestGrams := make(map[uint]*BestGram)
+	for _, value := range grams {
+		sample := m[value]
+		if sample != nil {
+			key := sample.maxKey()
+			if _, ok := bestGrams[key]; ok {
+				if bestGrams[key].Prob < sample.Prob {
+					bestGrams[key].Prob = sample.Prob
+					bestGrams[key].Gram = value
+				}
+			} else {
+				bestGrams[key] = &BestGram{
+					Prob: sample.Prob,
+					Gram: value,
+				}
+			}
+
+		}
+	}
+	return bestGrams
+}
+
+// Predict function to get best category
+func Predict(m map[string]*Sample, test string, cats map[uint]string, words []string, threshold float64) *BestCategory {
+	votes := make(map[uint]*Vote)
+
+	unis := ngrams.Make(test, 1, words)
+	unigrams := createBestGram(unis, m)
+	maxGram, maxKey, maxProb := getBestGram(unigrams)
+	if maxKey != 0 {
+		if _, ok := votes[maxKey]; ok {
+			votes[maxKey].Count++
+			votes[maxKey].Score += maxProb
+		} else {
+			votes[maxKey] = &Vote{
+				Count: 1.0,
+				Score: maxProb,
+			}
+		}
+	}
+
+	bis := ngrams.Make(test, 2, words)
+	var useBis []string
+	for _, value := range bis {
+		if strings.Index(value, maxGram) > -1 {
+			useBis = append(useBis, value)
+		}
+	}
+	bigrams := createBestGram(useBis, m)
+	maxGram, maxKey, maxProb = getBestGram(bigrams)
+	if maxKey != 0 {
+		if _, ok := votes[maxKey]; ok {
+			votes[maxKey].Count++
+			votes[maxKey].Score += maxProb
+		} else {
+			votes[maxKey] = &Vote{
+				Count: 1.0,
+				Score: maxProb,
+			}
+		}
+	}
+
+	tris := ngrams.Make(test, 3, words)
+	var useTris []string
+	for _, value := range tris {
+		if strings.Index(value, maxGram) > -1 {
+			useTris = append(useTris, value)
+		}
+	}
+	trigrams := createBestGram(useTris, m)
+	_, maxKey, maxProb = getBestGram(trigrams)
+	if maxKey != 0 {
+		if _, ok := votes[maxKey]; ok {
+			votes[maxKey].Count++
+			votes[maxKey].Score += maxProb
+		} else {
+			votes[maxKey] = &Vote{
+				Count: 1.0,
+				Score: maxProb,
+			}
+		}
+	}
+
+	bestID, bestProb := maxVote(votes, threshold)
+
+	return &BestCategory{
+		ID:    bestID,
+		Name:  cats[bestID],
+		Score: bestProb,
+	}
+}
+
+================
+File: samples.py
+================
+import random
+
+txt = open("training_data2.txt")
+context = txt.read()
+samples = context.split("\n")
+samples.pop(-1)
+maxSamples = len(samples)
+
+print maxSamples
+randomSamples = random.sample(range(0, maxSamples), int(maxSamples * 0.1))
+txt.close()
+print len(randomSamples)
+
+sampleTarget = open("test.txt", "w")
+for key in randomSamples:
+    sampleTarget.write(samples[key] + "\n")
+sampleTarget.close()
+
+randomSamples = sorted(randomSamples, reverse=True)
+for key in randomSamples:
+    samples.pop(key)
+
+sampleTrain = open("train.txt", "w")
+maxSamples = len(samples)
+print maxSamples
+for key in range(0, maxSamples):
+    sampleTrain.write(samples[key] + "\n")
+sampleTrain.close()
+print "job done"
+
+================
+File: model/sample.go
+================
+package model
+
+import "math"
+
+// Sample asdfs
+type Sample struct {
+	Ngram    string
+	Freq     float64
+	Classes  map[uint]float64
+	Prob     float64
+	Tfidf    map[uint]float64
+	Maximum  float64
+	Minimum  float64
+	Weighted bool
+}
+
+func (s *Sample) add() {
+	s.Freq++
+}
+
+// this method return max category key looking for best tfidf value.
+func (s *Sample) maxKey() (maxKey uint) {
+	var maximum float64
+	for key, value := range s.Classes {
+		if value > maximum {
+			maximum = value
+			maxKey = key
+		}
+	}
+	return
+}
+
+// General probability of 's' according to it general frequency
+// and which category seen this ngram.
+func (s *Sample) toProb() {
+	for _, value := range s.Classes {
+		s.Prob = value / s.Freq
+		if s.Prob > s.Maximum {
+			s.Maximum = s.Prob
+		}
+		if s.Prob < s.Minimum {
+			s.Minimum = s.Prob
+		}
+	}
+	return
+}
+
+// Tfidf value of sample s for each class detected
+func (s *Sample) toTfIdf(catsLen float64) {
+	if !s.Weighted {
+		sampLen := float64(len(s.Classes))
+		div := catsLen / sampLen
+		idf := math.Log10(1.0 + div)
+
+		for key, tf := range s.Classes {
+			tf = 1 + math.Log(tf)
+			s.Tfidf[key] = tf * idf // * s.Prob
+			if s.Tfidf[key] > s.Maximum {
+				s.Maximum = s.Tfidf[key]
+			}
+			if s.Tfidf[key] < s.Minimum {
+				s.Minimum = s.Tfidf[key]
+			}
+		}
+	}
+}
+
+================
+File: .gitignore
+================
+# lala
+*.bin
+*.txt
+
+================
+File: README.md
+================
+# Lucky
+
+To train a new classifier you should create two files and pass it to params. After train the classifier, two files are created to speed up the training fase, (model.bin and categories.bin)
+
+## Example files
+### Training file:
+```text
+120#Pago Pesos TEF
+26#COMISION MENSUAL POR MANTENCION
+109#COMPRAS APL* ITUNES.COM/BILL
+89#PAGO EN LINEA AUTOPISTA VESPUCIO SUR
+89#Compra Internet COSTANERA NORTE
+...
+```
+### Labels file:
+```text
+94#Ajuste por cierre de cuenta
+12#Gimnasio
+2#Bonos
+86#Intereses
+35#Jardín
+13#Ropa Deportiva
+...
+```
+
+## Basic model
+```go
+type Samples struct {
+    Ngram    string
+    Freq     float64
+    Classes  map[uint]float64
+    Probs    map[uint]float64
+    Maximum  float64
+    Minimum  float64
+    Weighted bool
+}
+```
+
+## Setup structure
+```go
+type Lucky struct {
+    Model            map[string]*model.Samples
+    CatNum           map[uint]float64
+    CatStr           map[uint]string
+    LabelsPath       string
+    TrainingDataPath string
+    URL              string
+}
+```
+
+## Public response
+```go
+type BestCategory struct {
+  ID    uint    // category id
+  Name  string  // category name
+  Score float64 // category probability
+}
+```
+
+### Public Methods
+```go
+Fit() void
+Predict(test string) (*model.BestCategory)
+```
+
+To see the classifier in action see `lucky_test.go`
+
+================
+File: db/categories.go
+================
+package db
+
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/jmoiron/sqlx"
+)
+
+// Data bla bla
+type Data struct {
+	Max int `db:"max"`
+}
+
+// CategoriesData bla bl
+type CategoriesData struct {
+	ID   uint   `db:"id"`
+	Name string `db:"name"`
+}
+
+// Categories from db
+func Categories(db *sqlx.DB) (map[uint]string, error) {
+	m := make(map[uint]string)
+	file, err := os.Create("labels.txt")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	query := `
+		SELECT id, name FROM sub_categories WHERE NOT sub_categories.category_id = 20;
+	`
+
+	d := CategoriesData{}
+	rows, err := db.Queryx(query)
+	if err != nil {
+		log.Fatalln(err)
+		return nil, err
+	}
+
+	w := bufio.NewWriter(file)
+	for rows.Next() {
+		err := rows.StructScan(&d)
+		if err != nil {
+			log.Fatalln(err)
+			return nil, err
+		}
+		m[d.ID] = d.Name
+		sc := fmt.Sprintf("%d#%s", d.ID, d.Name)
+		// fmt.Printf("%s\n", d)
+		fmt.Fprintln(w, sc)
+	}
+
+	w.Flush()
+	return m, nil
+}
+
+================
+File: model/files.go
+================
+package model
+
+import (
+	"bufio"
+	"encoding/gob"
+	"os"
+	"strconv"
+	"strings"
+)
+
+// SaveModel ...
+func SaveModel(file string, m map[string]*Sample) {
+	f, err := os.Create(file)
+	if err != nil {
+		panic("cant open file")
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	if err := enc.Encode(m); err != nil {
+		panic("cant encode")
+	}
+}
+
+// SaveCats ...
+func SaveCats(file string, cats map[uint]float64) {
+	f, err := os.Create(file)
+	if err != nil {
+		panic("cant open file")
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	if err := enc.Encode(cats); err != nil {
+		panic("cant encode")
+	}
+}
+
+// Load ...
+func Load(modelPath string) (m map[string]*Sample) {
+	f, err := os.Open(modelPath)
+	if err != nil {
+		panic("cant open model")
+	}
+	defer f.Close()
+
+	enc := gob.NewDecoder(f)
+	if err = enc.Decode(&m); err != nil {
+		panic("cant decode model")
+	}
+
+	return m
+}
+
+// Exists ...
+func Exists(file string) bool {
+	if _, err := os.Stat(file); err == nil {
+		return true
+	}
+
+	return false
+}
+
+// LoadLabels ...
+func LoadLabels(subCatPath string) map[uint]string {
+	f, err := os.Open(subCatPath)
+	if err != nil {
+		panic("cant open labels file")
+	}
+	defer f.Close()
+
+	m := make(map[uint]string)
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		splitedStr := strings.Split(line, "#")
+		id, name := splitedStr[0], splitedStr[1]
+		i, err := strconv.Atoi(id)
+		if err != nil {
+			panic("cannot convert string to int")
+		}
+		m[uint(i)] = name
+	}
+
+	return m
+}
+
+================
+File: model/model_test.go
+================
+package model
+
+import (
+	"fmt"
+	"testing"
+)
+
+var testVotes = map[uint]*Vote{
+	72: {
+		Count: 72,
+		Score: 2,
+	},
+	89: {
+		Count: 89,
+		Score: 11,
+	},
+}
+
+var testFreq = map[float64]uint{
+	9477: 72,
+	1510: 89,
+	1001: 89,
+	897:  89,
+	1164: 89,
+	293:  89,
+	755:  89,
+	3738: 89,
+	1700: 89,
+	7388: 72,
+	382:  89,
+}
+
+func TestMaxVotes(t *testing.T) {
+	vote, _ := maxVote(testVotes, 0.7)
+	expectedVote := uint(89)
+
+	if vote != expectedVote {
+		t.Errorf("Vote should be %d, got %d", expectedVote, vote)
+	}
+	fmt.Printf("MaxVote: %d\n\n", vote)
+}
+
+func TestBestOption(t *testing.T) {
+	expected := uint(89)
+	actual, _ := maxVote(testVotes, 0.7)
+	if actual != expected {
+		t.Errorf("Freq should be %d, got %d", expected, actual)
+	}
+	fmt.Printf("BestOption: %d\n\n", actual)
+}
+
+var testVotesEquals = map[uint]*Vote{
+	25: {
+		Count: 4,
+		Score: 63,
+	},
+	87: {
+		Count: 4,
+		Score: 100,
+	},
+}
+
+var testFreq2 = map[float64]uint{
+	7:    25,
+	1413: 87,
+	6:    25,
+	990:  87,
+}
+
+func TestMaxVotesEquals(t *testing.T) {
+	vote, _ := maxVote(testVotesEquals, 0.7)
+	expectedVote := uint(87)
+
+	if vote != expectedVote {
+		t.Errorf("Vote should be %d, got %d", expectedVote, vote)
+	}
+	fmt.Printf("MaxVote: %d\n\n", vote)
+}
+
+func TestBestOptionEquals(t *testing.T) {
+	expected := uint(87)
+	actual, _ := maxVote(testVotesEquals, 0.7)
+	if actual != expected {
+		t.Errorf("Freq should be %d, got %d", expected, actual)
+	}
+	fmt.Printf("BestOption: %d\n\n", actual)
+}
+
+================
+File: ngrams/ngrams_test.go
+================
+package ngrams
+
+import "testing"
+
+var invalidWords = []string{
+	"compra",
+	"normal",
+}
+var testCases = []struct {
+	phrases string
+	count   int
+	want    []string
+	equal   bool
+}{
+	{
+		phrases: "adidas parque arauco",
+		count:   1,
+		want:    []string{"adidas", "parque", "arauco"},
+		equal:   true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   2,
+		want: []string{
+			"adidas",
+			"parque",
+			"arauco",
+			"$ adidas",
+			"adidas parque",
+			"parque arauco",
+			"arauco $",
+		},
+		equal: true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   3,
+		want: []string{
+			"adidas",
+			"parque",
+			"arauco",
+			"$ adidas",
+			"adidas parque",
+			"parque arauco",
+			"arauco $",
+			"$ adidas parque",
+			"adidas parque arauco",
+			"parque arauco $",
+		},
+		equal: true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   3,
+		want: []string{
+			"adidas",
+			"arauco",
+			"adidas parque",
+			"parque arauco",
+			"adidas parque arauco",
+		},
+		equal: false,
+	},
+	{
+		phrases: "compra castano las condes",
+		count:   3,
+		want: []string{
+			"compra",
+			"castano",
+			"condes",
+			"las",
+			"compra castano",
+			"castano las",
+			"las condes",
+			"compra castano las",
+			"castano las condes",
+		},
+		equal: false,
+	},
+	{
+		phrases: "compra castano las condes",
+		count:   3,
+		want: []string{
+			"castano",
+			"condes",
+			"$ castano",
+			"castano condes",
+			"condes $",
+			"$ castano condes",
+			"castano condes $",
+		},
+		equal: true,
+	},
+	{
+		phrases: "compra ok market sub centro",
+		count:   3,
+		want: []string{
+			"ok",
+			"market",
+			"sub",
+			"centro",
+			"$ ok",
+			"ok market",
+			"market sub",
+			"sub centro",
+			"centro $",
+			"$ ok market",
+			"ok market sub",
+			"market sub centro",
+			"sub centro $",
+		},
+		equal: true,
+	},
+}
+
+func TestMakeN(t *testing.T) {
+	for _, c := range testCases {
+		got := MakeN(c.phrases, c.count, invalidWords)
+		if testEq(got, c.want) != c.equal {
+			t.Errorf("MakeN(%q, %d) == %q, want %q", c.phrases, c.count, got, c.want)
+		}
+	}
+}
+
+var testCases2 = []struct {
+	phrases string
+	want    string
+	equal   bool
+}{
+	{
+		phrases: "compra normal memits parque arauco",
+		want:    "memits parque arauco",
+		equal:   true,
+	},
+}
+
+func TestNormalize(t *testing.T) {
+	for _, c := range testCases2 {
+		got := normalize(c.phrases, invalidWords)
+		if got != c.want {
+			t.Errorf("normalize(%q) == %q, want %q", c.phrases, got, c.want)
+		}
+	}
+}
+
+func testEq(lhs, rhs []string) bool {
+	if lhs == nil && rhs == nil {
+		return true
+	}
+
+	if lhs == nil || rhs == nil {
+		return false
+	}
+
+	if len(lhs) != len(rhs) {
+		return false
+	}
+
+	for i := range lhs {
+		if lhs[i] != rhs[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+var testCases3 = []struct {
+	phrases string
+	count   int
+	want    []string
+	equal   bool
+}{
+	{
+		phrases: "adidas parque arauco",
+		count:   1,
+		want:    []string{"adidas", "parque", "arauco"},
+		equal:   true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   2,
+		want: []string{
+			"$ adidas",
+			"adidas parque",
+			"parque arauco",
+			"arauco $",
+		},
+		equal: true,
+	},
+	{
+		phrases: "adidas parque arauco",
+		count:   3,
+		want: []string{
+			"$ adidas parque",
+			"adidas parque arauco",
+			"parque arauco $",
+		},
+		equal: true,
+	},
+}
+
+func TestMake(t *testing.T) {
+	for _, c := range testCases3 {
+		got := Make(c.phrases, c.count, invalidWords)
+		if testEq(got, c.want) != c.equal {
+			t.Errorf("Make(%q, %d) == %q, want %q", c.phrases, c.count, got, c.want)
+		}
+	}
+}
+
+================
+File: ngrams/ngrams.go
+================
+package ngrams
+
+import (
+	"regexp"
+	"strings"
+
+	"github.com/bbalet/stopwords"
+	"github.com/kennygrant/sanitize"
+)
+
+func normalize(line string, words []string) string {
+	r := regexp.MustCompile("[^\\p{L}]+")
+	re := regexp.MustCompile("[\\s+]")
+	relen := regexp.MustCompile("[^\\w{2}$]+")
+	lower := strings.ToLower(line)
+	clean := sanitize.Accents(lower)
+	str := r.ReplaceAllString(clean, " ")
+	str = relen.ReplaceAllString(str, " ")
+
+	if len(words) > 0 {
+		for _, word := range words {
+			str = strings.Replace(str, word, "", -1)
+		}
+	}
+	str = strings.TrimSpace(str)
+	return re.ReplaceAllString(str, " ")
+}
+
+func stopWords(line string) string {
+	return stopwords.CleanString(line, "es", true)
+}
+
+// MakeN creates N-grams of a given string
+func MakeN(str string, N int, word []string) (result []string) {
+	arr := strings.Fields("$ " + stopWords(normalize(str, word)) + " $")
+	words := len(arr)
+
+	for k := 0; k < N; k++ {
+		step := (words - k)
+		length := k + 1
+		tmp := make([]string, length)
+
+		for i := 0; i < step; i++ {
+			if len(arr[i:i+length]) == 1 && arr[i : i+length][0] == "$" {
+				continue
+			}
+
+			copy(tmp, arr[i:i+length])
+			result = append(result, strings.Join(tmp, " "))
+		}
+	}
+	return
+}
+
+// Make ...
+func Make(str string, k int, word []string) (result []string) {
+	arr := strings.Fields("$ " + stopWords(normalize(str, word)) + " $")
+	words := len(arr)
+	step := (words - k + 1)
+	length := k
+	tmp := make([]string, length)
+
+	for i := 0; i < step; i++ {
+		if len(arr[i:i+length]) == 1 && arr[i : i+length][0] == "$" {
+			continue
+		}
+
+		copy(tmp, arr[i:i+length])
+		result = append(result, strings.Join(tmp, " "))
+	}
+	return
+}
+
+================
+File: lucky_test.go
+================
+package lucky
+
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/rodrwan/lucky/model"
+)
+
+func TestCatStr(t *testing.T) {
+	newModel := new(Config)
+	actual := newModel.CatStr
+	if actual != nil {
+		t.Errorf("CatStr should be nil, got %v", actual)
+	}
+}
+
+func TestLabelsPath(t *testing.T) {
+	newModel := new(Config)
+	expected := ""
+	actual := newModel.LabelsPath
+	if actual != expected {
+		t.Errorf("LabelsPath should be \"\", got %v", actual)
+	}
+}
+func TestModel(t *testing.T) {
+	newModel := new(Config)
+	actual := newModel.Model
+	if actual != nil {
+		t.Errorf("Model should be nil, got %v", actual)
+	}
+}
+
+func TestTrainingDataPath(t *testing.T) {
+	newModel := new(Config)
+	expected := ""
+	actual := newModel.TrainingDataPath
+	if actual != expected {
+		t.Errorf("TrainingDataPath should be \"\", got %v", actual)
+	}
+}
+
+func TestVerbose(t *testing.T) {
+	newModel := new(Config)
+	expected := false
+	actual := newModel.Verbose
+	if !actual == expected {
+		t.Errorf("TrainingDataPath should be \"\", got %v", actual)
+	}
+}
+
+func TestClassifier(t *testing.T) {
+	newModel := new(Config)
+	newModel.Verbose = false
+	newModel.TrainingDataPath = "train.txt"
+	newModel.Threshold = 0.0
+	newModel.Fit()
+	newModel.InvalidWords = []string{
+	// "compra",
+	// "pago",
+	// "normal",
+	// "cl",
+	// "linea",
+	// "parque",
+	// "arauco",
+	// "arauc",
+	// "arau",
+	// "mall",
+	// "reina",
+	// "condes",
+	// "conde",
+	// "alto",
+	// "maipu",
+	}
+
+	desc := "ADIDAS PARQUE ARAUCO"
+	best := newModel.Predict(desc)
+
+	var expected uint = 13
+	if best.ID != expected {
+		t.Errorf(" Should return ID equal to %d, got %d", expected, best.ID)
+	}
+	if newModel.Model == nil {
+		t.Errorf(" Should not be equal to nil, got %v", newModel.Model)
+	}
+	if !model.Exists("model.bin") {
+		t.Errorf(" Should create model.bin, got %v", model.Exists("model.bin"))
+	}
+
+	var testCases = []struct {
+		phrases    string
+		categoryID uint
+	}{
+		{
+			phrases:    "ADIDAS PARQUE ARAUCO",
+			categoryID: 48,
+		},
+		{
+			phrases:    "compra normal ripley parque arauco",
+			categoryID: 48,
+		},
+		{
+			phrases:    "compra normal paris parque arauco",
+			categoryID: 48,
+		},
+		{
+			phrases:    "compra normal falabella alto las condes",
+			categoryID: 48,
+		},
+		{
+			phrases:    "COMPRA SUBWAY METRO ESC",
+			categoryID: 9,
+		},
+		{
+			phrases:    "Giro en Cajero Automático",
+			categoryID: 27,
+		},
+		{
+			phrases:    "COMPRA NIKE SHOP ALTO LA",
+			categoryID: 13,
+		},
+		{
+			phrases:    "COMPRA LIQUIDOS LA REINA",
+			categoryID: 99,
+		},
+		{
+			phrases:    "COMPRA CASTANO LAS CONDE",
+			categoryID: 100,
+		},
+		{
+			phrases:    "COMPRA DONER HOUSE",
+			categoryID: 9,
+		},
+		{
+			phrases:    "PAC Seguro Frau 000005500832946",
+			categoryID: 85,
+		},
+		{
+			phrases:    "COMPRA PIZZA PIZZA COLON",
+			categoryID: 9,
+		},
+		{
+			phrases:    "COMPRA OK MARKET SAN PAS",
+			categoryID: 8,
+		},
+		{
+			phrases:    "COMPRA OK MARKET SUB CEN",
+			categoryID: 8,
+		},
+		{
+			phrases:    "COMPRA VIVE SNACK MOVIST",
+			categoryID: 9,
+		},
+		{
+			phrases:    "COMPRA BARBAZUL",
+			categoryID: 7,
+		},
+		{
+			phrases:    "COMPRA CASTANO LAS CONDE",
+			categoryID: 100,
+		},
+		{
+			phrases:    "COMPRA FUENTE CHILENA AP",
+			categoryID: 9,
+		},
+		{
+			phrases:    "PAGO EN LINEA VTR",
+			categoryID: 70,
+		},
+		{
+			phrases:    "PAGO EN LINEA AUTOPISTA COSTANERA NORTE",
+			categoryID: 89,
+		},
+		{
+			phrases:    "compra normal todo juegos cl",
+			categoryID: 25,
+		},
+		{
+			phrases:    "Transf otro Bco FINCIERO SPA",
+			categoryID: 6,
+		},
+		{
+			phrases:    "PAGO BELSPORT S.A. PARQUE ARAU",
+			categoryID: 13,
+		},
+		{
+			phrases:    "COPEC MAIPU 29336",
+			categoryID: 56,
+		},
+		{
+			phrases:    "JUMBO MAIPU SUPERMERCADO",
+			categoryID: 8,
+		},
+	}
+
+	good := 0
+	for _, test := range testCases {
+		best := newModel.Predict(test.phrases)
+		if best.ID != test.categoryID {
+			t.Errorf("Description: %s, has failed\n", test.phrases)
+			t.Errorf("Category: %s\n", best.Name)
+			t.Errorf("Probability: %f\n", best.Score)
+			t.Errorf(" Should best.ID be equal to %d, got %d", test.categoryID, best.ID)
+		} else {
+			good++
+		}
+		acc := 100 * (float64(good) / float64(len(testCases)))
+		fmt.Printf("\rAcc: %d/%d -> %03.2f%%", good, len(testCases), acc)
+		time.Sleep(time.Second / 4)
+	}
+	fmt.Printf("\n\n")
+	maxProcs := runtime.NumCPU()
+	log.Printf("Available CPU: %d\n", maxProcs)
+	runtime.GOMAXPROCS(maxProcs)
+
+	testPath := "test.txt"
+	fileBytes, _ := ioutil.ReadFile(testPath)
+	fileAsString := string(fileBytes)
+	lines := strings.Split(fileAsString, "\n")
+	lines = lines[0:len(lines)]
+	totalLines := len(lines)
+	chunkSize := totalLines / maxProcs
+	rest := totalLines % maxProcs
+	wg := &sync.WaitGroup{}
+
+	accuracy := 0.0
+	for idx := 0; idx < maxProcs; idx++ {
+		chunk := lines[chunkSize*(idx) : chunkSize*(idx+1)+rest]
+		wg.Add(1)
+
+		go func(chunk []string) {
+			for _, line := range chunk {
+				if len(line) == 0 {
+					continue
+				}
+				splitedStr := strings.Split(line, "#")
+				category, description := splitedStr[0], splitedStr[1]
+				best := newModel.Predict(description)
+				i, err := strconv.Atoi(category)
+				if err != nil {
+					continue
+				}
+				if best.ID == uint(i) {
+					accuracy += 1.0
+				}
+			}
+			wg.Done()
+		}(chunk)
+	}
+	wg.Wait()
+	fmt.Printf("Accuracy: %03.2f%%\n", 100*(accuracy/float64(len(lines))))
+}
+
+================
+File: lucky.go
+================
+package lucky
+
+import (
+	"errors"
+	"flag"
+	"log"
+	"runtime"
+	"time"
+
+	"github.com/mtavano/lucky/model"
+)
+
+var (
+	path   = flag.String("train", "training_data.txt", "Training data path")
+	labels = flag.String("labels", "labels.txt", "Labels sample path")
+	verb   = flag.Bool("verbose", false, "Verbose mode true to display")
+)
+
+// Config ...
+type Config struct {
+	Model            map[string]*model.Sample
+	CatStr           map[uint]string
+	LabelsPath       string
+	TrainingDataPath string
+	Verbose          bool
+	AsPkg            bool
+	InvalidWords     []string
+	Threshold        float64
+}
+
+// Fit ...
+func (config *Config) Fit() {
+	if !config.AsPkg {
+		flag.Parse()
+	}
+	if !config.Verbose {
+		config.Verbose = *verb
+	}
+	if config.Verbose {
+		log.Println(">> Init model.")
+	}
+	if config.LabelsPath == "" {
+		config.LabelsPath = *labels
+	}
+	if config.Verbose {
+		log.Printf("> Loading %s\n", config.LabelsPath)
+	}
+	if config.TrainingDataPath == "" {
+		config.TrainingDataPath = *path
+	}
+	if config.Verbose {
+		log.Printf("> Loading %s\n", config.TrainingDataPath)
+	}
+
+	err := config.getCategories()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if config.Verbose {
+		log.Println(">> Fit model.")
+	}
+
+	// enable all cpu to speedup model fit
+	maxProcs := runtime.NumCPU()
+	// log.Printf("Available CPU: %d\n", maxProcs)
+	runtime.GOMAXPROCS(maxProcs)
+
+	start := time.Now()
+	m := model.Fit(config.TrainingDataPath, maxProcs, config.InvalidWords)
+	elapsed := time.Since(start)
+	if config.Verbose {
+		log.Printf("Fit took %s\n\n", elapsed)
+	}
+
+	config.Model = m
+	// log.Println(">> Ready to categorize.")
+	// just leave 1 cpu to the rest of work
+	runtime.GOMAXPROCS(1)
+}
+
+// Predict ...
+func (config *Config) Predict(test string) (res *model.BestCategory) {
+	m := config.Model
+	cats := config.CatStr
+	res = model.Predict(m, test, cats, config.InvalidWords, config.Threshold)
+	return
+}
+
+func (config *Config) getCategories() error {
+	if model.Exists(config.LabelsPath) {
+		config.CatStr = model.LoadLabels(config.LabelsPath)
+		return nil
+	}
+
+	return errors.New("can't load labels file")
+}
+
+
+
+
+
+================================================================
+End of Codebase
+================================================================

@@ -1,0 +1,163 @@
+1#27#Giro Redbanc
+1#26#Comisión Banco
+1#28#Pago de Crédito
+1#29#Pago a Línea de Crédito
+1#30#Pago a Tarjeta de Crédito
+1#91#Pago desde Línea de Crédito
+1#92#Pago desde Tarjeta de Crédito
+1#97#Pago a Cuenta Corriente
+1#98#Pago desde Cuenta Corriente
+1#170#Capital de Crédito
+1#171#Ajuste por Crédito
+1#172#Transferencias
+1#84#Traspaso desde Cuenta Externa
+1#77#Traspaso Entre Cuentas
+1#94#Ajuste por cierre de cuenta
+1#85#Seguro Bancario
+1#86#Intereses
+2#10#Equipos y Accesorios Deportivos
+2#11#Eventos Deportivos
+2#12#Gimnasio
+2#13#Ropa Deportiva
+2#105#Admisiones Deportivas
+3#14#Arancel Colegio
+3#15#Arancel Universidad
+3#16#Cuota Crédito Educacional
+3#17#Cursos de Capacitación
+3#18#Jardín Infantil
+3#19#Libros
+3#20#Materiales Educacionales
+3#21#Sala Cuna
+3#22#Uniformes
+3#106#Actividades Escolares
+3#107#Matrícula
+3#108#Viaje de Estudios
+3#132#Seguro de Estudios
+4#23#Casino de Juegos / Lotería
+4#24#Cine / Teatro
+4#25#Juguetes / Videojuegos
+4#109#Apps
+4#110#Consolas
+4#111#Música
+4#113#Películas y Series
+5#31#Arreglos
+5#32#Decoración Interior
+5#33#Electrodomésticos
+5#34#Empleada Doméstica
+5#35#Jardín
+5#36#Lavandería
+5#37#Tecnología / Electrónica
+5#64#Agua
+5#65#Arriendo
+5#66#Calefacción
+5#67#Cuota Dividendo Crédito Hipotecario
+5#68#Gastos Comunes
+5#69#Seguro del Hogar
+5#70#Internet
+5#71#Telefonía Fija
+5#72#Electricidad
+5#93#Gas
+5#120#Gastos Comunes
+5#121#Parafina
+5#122#Tratamiento de Agua
+5#138#Alarma
+5#139#Telefonía Celular / Móvil
+5#140#TV Cable
+5#141#Servicios Online
+5#156#Ferretería
+5#45#Mascotas
+6#38#Acciones
+6#39#AFP
+6#40#APV
+6#41#Compra de Automóviles
+6#42#Depósito a Plazo
+6#43#Fondos Mutuos
+6#44#Propiedades
+6#73#Inversión en Negocios
+6#160#Inversiones en Cumplo
+7#1#Gasto Indefinido
+8#7#Bares y Discotheques
+8#9#Restaurantes
+8#79#Cafetería
+8#99#Bebidas Alcohólicas
+8#100#Snacks
+8#161#Heladería
+8#162#Panadería
+9#49#Consultas Médicas
+9#50#Exámenes
+9#51#Hospitalizaciones
+9#52#Isapre
+9#53#Medicamentos
+9#54#Seguro Catastrófico
+9#129#Dentista / Ortodoncista
+9#130#Tratamientos Médicos
+9#135#Seguro de Salud
+9#157#Isapre
+10#48#Ropa
+10#78#Articulos de Farmacia
+10#101#Maquillaje
+10#102#Perfumes
+10#103#Spa y Masajes
+10#104#Tratamientos de Belleza
+10#114#Artículos para Bebé
+10#118#Ropa de Bebé
+10#123#Accesorios
+10#125#Artículos para Adultos
+10#126#Cigarrillos / Hierbas
+10#127#Periódico / Diario
+10#128#Calzado
+11#55#Arriendo de Auto
+11#56#Bencina / Diesel
+11#57#Metro / Transporte Público
+11#58#Seguro de Auto
+11#59#Servicio Técnico / Taller de Auto
+11#60#Taxi
+11#89#Autopista / Tag
+11#147#Bicicleta
+11#148#Cuota Crédito Automotriz
+11#149#Estacionamiento
+11#150#Motocicleta
+11#151#Pago de Partes
+11#152#Permiso de Circulación
+11#153#Revisión Técnica
+11#159#Accesorios y Repuestos
+12#61#Avión
+12#62#Bus / Tren
+12#63#Hoteles
+12#74#Atracciones Turísticas
+12#154#Cruceros
+12#155#Vacaciones
+12#136#Seguro de Viaje
+13#8#Mercadería / Supermercado
+14#2#Bonos
+14#3#Ganancias de Inversiones
+14#4#Regalos Recibidos
+14#5#Servicios Prestados
+14#6#Sueldos
+14#46#Peluquería / Depilación
+14#47#Regalos Entregados
+14#75#Reembolsos
+14#76#Ingreso Indefinido
+14#80#Donaciones
+14#81#Préstamos de Dinero a Otros
+14#82#Devolución de Dinero
+14#83#Seguro de Vida
+14#87#Impuestos
+14#88#Otros Servicios
+14#90#Envíos
+14#95#Pension/Mesada Recibida
+14#96#Recepción de Crédito/Préstamo
+14#115#Enfermera
+14#116#Pañales
+14#117#Niñera
+14#119#Contribuciones
+14#131#Seguro de Cesantía
+14#133#Seguro de Fraude
+14#134#Seguro de Hogar
+14#137#Seguro Profesional
+14#142#Impresiones
+14#143#Legales
+14#144#Materiales de Oficina
+14#145#Notaría
+14#146#Publicidad / Marketing
+14#158#Cementerio

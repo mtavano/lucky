@@ -1,3 +1,28 @@
-# lala
+# Binarios
 *.bin
-*.txt
+quickcat
+
+# Modelos entrenados (pueden ser muy grandes)
+*.json
+model_*.json
+model.tmp.*
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/

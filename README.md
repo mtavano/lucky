@@ -64,3 +64,40 @@ Predict(test string) (*model.BestCategory)
 ```
 
 To see the classifier in action see `lucky_test.go`
+
+
+---
+
+## V2 integration
+
+```go
+import v2 "github.com/mtavano/lucky/v2"
+
+// Para tu servicio, solo necesitas esto:
+func initClassifier(modelPath string) (*v2.Config, error) {
+    config := &v2.Config{
+        Threshold: 0.3,  // tu umbral de confianza
+        Verbose:   false, // sin logs en prod
+    }
+    
+    err := config.LoadModel(modelPath)  // ← AQUÍ ES EL LOAD
+    if err != nil {
+        return nil, fmt.Errorf("error cargando modelo: %v", err)
+    }
+    
+    return config, nil
+}
+
+// Usar en tu servicio:
+func main() {
+    classifier, err := initClassifier("/path/to/your/model.json")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Listo para usar
+    result := classifier.Predict("COMPRA SUPERMERCADO")
+    fmt.Printf("Categoría: %s (ID: %d, Score: %.3f)\n", 
+        result.Name, result.ID, result.Score)
+}
+```

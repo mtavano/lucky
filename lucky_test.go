@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rodrwan/lucky/model"
+	"github.com/mtavano/lucky/model"
 )
 
 func TestCatStr(t *testing.T) {
@@ -63,21 +63,21 @@ func TestClassifier(t *testing.T) {
 	newModel.Threshold = 0.0
 	newModel.Fit()
 	newModel.InvalidWords = []string{
-	// "compra",
-	// "pago",
-	// "normal",
-	// "cl",
-	// "linea",
-	// "parque",
-	// "arauco",
-	// "arauc",
-	// "arau",
-	// "mall",
-	// "reina",
-	// "condes",
-	// "conde",
-	// "alto",
-	// "maipu",
+		// "compra",
+		// "pago",
+		// "normal",
+		// "cl",
+		// "linea",
+		// "parque",
+		// "arauco",
+		// "arauc",
+		// "arau",
+		// "mall",
+		// "reina",
+		// "condes",
+		// "conde",
+		// "alto",
+		// "maipu",
 	}
 
 	desc := "ADIDAS PARQUE ARAUCO"

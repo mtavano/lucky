@@ -3,7 +3,7 @@ package model
 import (
 	"strings"
 
-	"github.com/rodrwan/lucky/ngrams"
+	"github.com/mtavano/lucky/ngrams"
 )
 
 // BestCategory ...

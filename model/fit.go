@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rodrwan/lucky/ngrams"
+	"github.com/mtavano/lucky/ngrams"
 )
 
 // Fit create a map of ngrams from file

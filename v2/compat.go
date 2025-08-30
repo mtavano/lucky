@@ -2,6 +2,7 @@ package v2
 
 import (
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 )
@@ -13,11 +14,23 @@ type BestCategory struct {
 	Score float64 `json:"score"`
 }
 
+// ModelSample mantiene compatibilidad con model.Sample de v1
+type ModelSample struct {
+	Ngram    string
+	Freq     float64
+	Classes  map[uint]float64
+	Prob     float64
+	Tfidf    map[uint]float64
+	Maximum  float64
+	Minimum  float64
+	Weighted bool
+}
+
 // Config mantiene compatibilidad con lucky.Config de v1
 type Config struct {
 	// v1 compatible fields
-	Model            map[string]*Sample // no usado en v2, pero mantenemos compatibilidad
-	CatStr           map[uint]string    // mapeado desde Model.LabelName
+	Model            map[string]*ModelSample // no usado en v2, pero mantenemos compatibilidad
+	CatStr           map[uint]string         // mapeado desde Model.LabelName
 	LabelsPath       string
 	TrainingDataPath string
 	Verbose          bool
@@ -104,6 +117,7 @@ func (config *Config) Fit() {
 		for _, v := range vec {
 			l2 += v * v
 		}
+		l2 = math.Sqrt(l2)
 		if l2 > 0 {
 			for i := range vec {
 				vec[i] /= l2
@@ -179,12 +193,12 @@ func (config *Config) LoadModel(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return err
 	}
-	
+
 	config.model = loadModel(path)
-	
+
 	// reconstruir CatStr para compatibilidad
 	config.CatStr = config.model.LabelName
-	
+
 	return nil
 }
 
@@ -196,4 +210,3 @@ func (config *Config) GetModelPath() string {
 	}
 	return "model.json"
 }
-

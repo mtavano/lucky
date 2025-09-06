@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+README.md
+LICENSE
+
+# Go
+*.mod
+*.sum
+vendor/
+
+# Build artifacts
+*.bin
+quickcat
+model.bin
+
+# Development files
+*.test
+*.prof
+coverage.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Documentation (except essential ones)
+docs/
+*.md
+!README.md
+
+# Test data (use your own)
+samples.py
+repomix-output.txt
+
+# Temporary files
+tmp/
+temp/

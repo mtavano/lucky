@@ -18,6 +18,18 @@ import (
 
 const Dim = 1 << 16 // feature space size (hashing trick) - 65K en lugar de 1M
 
+// HybridWeights defines the relative importance of char vs word features
+type HybridWeights struct {
+	CharWeight float64 // weight for character n-grams (robustness)
+	WordWeight float64 // weight for word n-grams (semantics)
+}
+
+// Default weights based on empirical testing - favor char n-grams for typo robustness
+var defaultWeights = HybridWeights{
+	CharWeight: 0.6, // slightly favor char n-grams for typo robustness
+	WordWeight: 0.4, // but include word semantics
+}
+
 // Spanish stopwords map for native filtering (no external dependencies)
 var spanishStopwords = map[string]bool{
 	// Artículos
@@ -57,6 +69,7 @@ type Model struct {
 	DF        []int              `json:"df"`     // doc freq per hashed index (for IDF)
 	Docs      int                `json:"docs"`   // number of docs used to compute IDF
 	Params    map[string]any     `json:"params"` // metadata (ngrams, τ, etc.)
+	Weights   *HybridWeights     `json:"weights,omitempty"` // hybrid feature weights
 }
 
 type Sample struct {
@@ -159,7 +172,28 @@ func merchantAlias(s string) string {
 	return s
 }
 
-// ---------- Hashing TF-IDF (char n-grams) ----------
+// ---------- Hashing TF-IDF (char n-grams + word n-grams) ----------
+
+// wordNgrams generates word-level n-grams from normalized text
+func wordNgrams(s string, nMin, nMax int) []string {
+	words := strings.Fields(s)
+	if len(words) == 0 {
+		return nil
+	}
+	
+	// Add boundary markers for word context
+	words = append([]string{"<START>"}, words...)
+	words = append(words, "<END>")
+	
+	var ngrams []string
+	for n := nMin; n <= nMax; n++ {
+		for i := 0; i+n <= len(words); i++ {
+			ngram := strings.Join(words[i:i+n], " ")
+			ngrams = append(ngrams, ngram)
+		}
+	}
+	return ngrams
+}
 
 func charNgrams(s string, nMin, nMax int) []string {
 	// add boundaries for better signal
@@ -182,15 +216,35 @@ func hidx(ng string) int {
 	return int(h.Sum32()) & (Dim - 1)
 }
 
-func featurize(doc string, df []int, docs int, nMin, nMax int) (vec map[int]float64) {
-	// term frequencies
+// charFeatureIdx generates hash index for character n-grams with prefix to avoid collisions
+func charFeatureIdx(ng string) int {
+	return hidx("c:" + ng)
+}
+
+// wordFeatureIdx generates hash index for word n-grams with prefix to avoid collisions
+func wordFeatureIdx(ng string) int {
+	return hidx("w:" + ng)
+}
+
+// hybridFeaturize combines character and word n-grams with configurable weights
+func hybridFeaturize(doc string, df []int, docs int, nMin, nMax int) (vec map[int]float64) {
 	vec = map[int]float64{}
-	ngrams := charNgrams(doc, nMin, nMax)
-	for _, ng := range ngrams {
-		i := hidx(ng)
-		vec[i] += 1.0
+	
+	// Character n-grams (robustness to typos)
+	charNgrams := charNgrams(doc, nMin, nMax)
+	for _, ng := range charNgrams {
+		i := charFeatureIdx(ng)
+		vec[i] += defaultWeights.CharWeight
 	}
-	// TF-IDF: tf * log((1+N)/(1+df)) + 1
+	
+	// Word n-grams (semantic understanding) - unigrams, bigrams, trigrams
+	wordNgrams := wordNgrams(doc, 1, 3)
+	for _, ng := range wordNgrams {
+		i := wordFeatureIdx(ng)
+		vec[i] += defaultWeights.WordWeight
+	}
+	
+	// Apply TF-IDF weighting
 	for i, tf := range vec {
 		idf := 1.0
 		if df != nil && docs > 0 {
@@ -199,6 +253,7 @@ func featurize(doc string, df []int, docs int, nMin, nMax int) (vec map[int]floa
 		}
 		vec[i] = tf * idf
 	}
+	
 	// L2 normalize
 	l2 := 0.0
 	for _, v := range vec {
@@ -210,7 +265,72 @@ func featurize(doc string, df []int, docs int, nMin, nMax int) (vec map[int]floa
 			vec[i] = v / l2
 		}
 	}
-	return
+	
+	return vec
+}
+
+// SetHybridWeights configures the weights for hybrid feature extraction
+func (m *Model) SetHybridWeights(charWeight, wordWeight float64) {
+	m.Weights = &HybridWeights{
+		CharWeight: charWeight,
+		WordWeight: wordWeight,
+	}
+}
+
+// GetHybridWeights returns the hybrid weights, using defaults if not set
+func (m *Model) GetHybridWeights() HybridWeights {
+	if m.Weights != nil {
+		return *m.Weights
+	}
+	return defaultWeights
+}
+
+// hybridFeaturizeWithWeights uses custom weights for feature extraction
+func hybridFeaturizeWithWeights(doc string, df []int, docs int, nMin, nMax int, weights HybridWeights) (vec map[int]float64) {
+	vec = map[int]float64{}
+	
+	// Character n-grams (robustness to typos)
+	charNgrams := charNgrams(doc, nMin, nMax)
+	for _, ng := range charNgrams {
+		i := charFeatureIdx(ng)
+		vec[i] += weights.CharWeight
+	}
+	
+	// Word n-grams (semantic understanding) - unigrams, bigrams, trigrams
+	wordNgrams := wordNgrams(doc, 1, 3)
+	for _, ng := range wordNgrams {
+		i := wordFeatureIdx(ng)
+		vec[i] += weights.WordWeight
+	}
+	
+	// Apply TF-IDF weighting
+	for i, tf := range vec {
+		idf := 1.0
+		if df != nil && docs > 0 {
+			dfi := df[i]
+			idf = math.Log(float64(1+docs)/float64(1+dfi)) + 1.0
+		}
+		vec[i] = tf * idf
+	}
+	
+	// L2 normalize
+	l2 := 0.0
+	for _, v := range vec {
+		l2 += v * v
+	}
+	l2 = math.Sqrt(l2)
+	if l2 > 0 {
+		for i, v := range vec {
+			vec[i] = v / l2
+		}
+	}
+	
+	return vec
+}
+
+// featurize - backward compatibility wrapper (will be deprecated)
+func featurize(doc string, df []int, docs int, nMin, nMax int) (vec map[int]float64) {
+	return hybridFeaturize(doc, df, docs, nMin, nMax)
 }
 
 // ---------- Training (centroids) ----------
@@ -219,13 +339,13 @@ func RunTrain(labelsPath, dataPath, outPath string) {
 	labelName := readLabels(labelsPath)
 	samples := readData(dataPath)
 
-	// compute DF for IDF
+	// compute DF for IDF using hybrid features
 	df := make([]int, Dim)
 	docs := len(samples)
 	for _, s := range samples {
 		text := normalize(s.Text)
 		seen := map[int]bool{}
-		for idx := range featurize(text, nil, 0, 3, 5) {
+		for idx := range hybridFeaturize(text, nil, 0, 3, 5) {
 			if !seen[idx] {
 				df[idx] = df[idx] + 1
 				seen[idx] = true
@@ -233,12 +353,12 @@ func RunTrain(labelsPath, dataPath, outPath string) {
 		}
 	}
 
-	// accumulate centroids
+	// accumulate centroids using hybrid features
 	acc := make(map[uint]map[int]float64)
 	count := make(map[uint]int)
 	for _, s := range samples {
 		text := normalize(s.Text)
-		vec := featurize(text, df, docs, 3, 5)
+		vec := hybridFeaturize(text, df, docs, 3, 5)
 		if acc[s.Label] == nil {
 			acc[s.Label] = map[int]float64{}
 		}
@@ -278,10 +398,14 @@ func RunTrain(labelsPath, dataPath, outPath string) {
 		DF:        df,
 		Docs:      docs,
 		Params: map[string]any{
-			"ngrams":     "char(3-5)",
+			"ngrams":     "hybrid(char:3-5,word:1-3)",
 			"dim":        Dim,
 			"classifier": "centroid-cosine",
+			"version":    "2.2",
+			"features":   "char+word",
+			"weights":    fmt.Sprintf("c:%.1f,w:%.1f", defaultWeights.CharWeight, defaultWeights.WordWeight),
 		},
+		Weights: &defaultWeights,
 	}
 	saveModel(outPath, model)
 	fmt.Println("ok: wrote", outPath)
@@ -315,7 +439,9 @@ func RunPredict(modelPath string, thr float64, topk int) {
 }
 
 func predictOne(m *Model, text string, topk int) []Pred {
-	vec := featurize(normalize(text), m.DF, m.Docs, 3, 5)
+	// Use model's hybrid weights if available, otherwise use defaults
+	weights := m.GetHybridWeights()
+	vec := hybridFeaturizeWithWeights(normalize(text), m.DF, m.Docs, 3, 5, weights)
 	type pair struct {
 		id uint
 		s  float64

@@ -72,13 +72,13 @@ func (config *Config) Fit() {
 	labelName := readLabels(config.LabelsPath)
 	samples := readData(config.TrainingDataPath)
 
-	// compute DF for IDF
+	// compute DF for IDF using hybrid features
 	df := make([]int, Dim)
 	docs := len(samples)
 	for _, s := range samples {
 		text := normalize(s.Text)
 		seen := map[int]bool{}
-		for idx := range featurize(text, nil, 0, 3, 5) {
+		for idx := range hybridFeaturize(text, nil, 0, 3, 5) {
 			if !seen[idx] {
 				df[idx] = df[idx] + 1
 				seen[idx] = true
@@ -86,12 +86,12 @@ func (config *Config) Fit() {
 		}
 	}
 
-	// accumulate centroids
+	// accumulate centroids using hybrid features
 	acc := make(map[uint]map[int]float64)
 	count := make(map[uint]int)
 	for _, s := range samples {
 		text := normalize(s.Text)
-		vec := featurize(text, df, docs, 3, 5)
+		vec := hybridFeaturize(text, df, docs, 3, 5)
 		if acc[s.Label] == nil {
 			acc[s.Label] = map[int]float64{}
 		}

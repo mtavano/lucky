@@ -120,7 +120,7 @@ func TestHybridFeaturize(t *testing.T) {
 
 func TestHybridWeights(t *testing.T) {
 	// Test default weights
-	defaultW := defaultWeights
+	defaultW := DefaultWeights
 	if defaultW.CharWeight <= 0 || defaultW.WordWeight <= 0 {
 		t.Errorf("Default weights should be positive: char=%f, word=%f", 
 			defaultW.CharWeight, defaultW.WordWeight)
@@ -131,7 +131,7 @@ func TestHybridWeights(t *testing.T) {
 	
 	// Should return defaults when no weights set
 	weights := model.GetHybridWeights()
-	if weights.CharWeight != defaultWeights.CharWeight || weights.WordWeight != defaultWeights.WordWeight {
+	if weights.CharWeight != DefaultWeights.CharWeight || weights.WordWeight != DefaultWeights.WordWeight {
 		t.Errorf("GetHybridWeights() should return defaults when not set")
 	}
 	

@@ -63,17 +63,21 @@ func RunTrain(labelsPath, dataPath, outPath string) {
 		centroids[lab] = vec
 	}
 
+	// Build feature map for hierarchical voting
+	featureMap := BuildFeatureMap(samples)
+
 	model := &Model{
-		Centroids: centroids,
-		LabelName: labelName,
-		DF:        df,
-		Docs:      docs,
+		Centroids:  centroids,
+		LabelName:  labelName,
+		DF:         df,
+		Docs:       docs,
+		FeatureMap: featureMap,
 		Params: map[string]any{
-			"ngrams":     "hybrid(char:3-5,word:1-3)",
+			"ngrams":     "hybrid(char:3-5,word:1-3)+voting(word:1-3)",
 			"dim":        Dim,
-			"classifier": "centroid-cosine",
-			"version":    "2.2",
-			"features":   "char+word",
+			"classifier": "centroid-cosine+hierarchical-voting",
+			"version":    "2.3",
+			"features":   "char+word+voting",
 			"weights":    fmt.Sprintf("c:%.1f,w:%.1f", DefaultWeights.CharWeight, DefaultWeights.WordWeight),
 		},
 		Weights: &DefaultWeights,

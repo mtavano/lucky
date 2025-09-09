@@ -18,7 +18,7 @@ func RunPredict(modelPath string, thr float64, topk int) {
 		if line == "" {
 			continue
 		}
-		preds := predictOne(m, line, topk)
+		preds := predictOneHierarchical(m, line, topk)
 		best := preds[0]
 		if best.Score < thr {
 			fmt.Printf("{\"id\":0,\"name\":\"UNKNOWN\",\"score\":%.4f,\"topk\":%s}\n", best.Score, mustJSON(preds))
@@ -28,7 +28,7 @@ func RunPredict(modelPath string, thr float64, topk int) {
 	}
 }
 
-// predictOne predicts the top-k categories for a given text
+// predictOne predicts using centroids only (for backward compatibility)
 func predictOne(m *Model, text string, topk int) []Pred {
 	// Use model's hybrid weights if available, otherwise use defaults
 	weights := m.GetHybridWeights()
@@ -56,4 +56,15 @@ func predictOne(m *Model, text string, topk int) []Pred {
 		out = append(out, Pred{ID: id, Name: m.LabelName[id], Score: bag[i].s})
 	}
 	return out
+}
+
+// predictOneHierarchical predicts using combined centroid + hierarchical voting
+func predictOneHierarchical(m *Model, text string, topk int) []Pred {
+	// If no feature map available, fall back to centroid-only
+	if m.FeatureMap == nil || len(m.FeatureMap) == 0 {
+		return predictOne(m, text, topk)
+	}
+	
+	// Use combined prediction with voting
+	return CombinedPredict(m, text, m.FeatureMap, DefaultVotingWeights, topk)
 }

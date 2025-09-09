@@ -16,12 +16,13 @@ var DefaultWeights = HybridWeights{
 
 // Model represents a trained classifier model
 type Model struct {
-	Centroids map[uint][]float64 `json:"centroids"` // categoryID -> centroid vector
-	LabelName map[uint]string    `json:"label_name"`
-	DF        []int              `json:"df"`     // doc freq per hashed index (for IDF)
-	Docs      int                `json:"docs"`   // number of docs used to compute IDF
-	Params    map[string]any     `json:"params"` // metadata (ngrams, τ, etc.)
-	Weights   *HybridWeights     `json:"weights,omitempty"` // hybrid feature weights
+	Centroids  map[uint][]float64 `json:"centroids"` // categoryID -> centroid vector
+	LabelName  map[uint]string    `json:"label_name"`
+	DF         []int              `json:"df"`     // doc freq per hashed index (for IDF)
+	Docs       int                `json:"docs"`   // number of docs used to compute IDF
+	Params     map[string]any     `json:"params"` // metadata (ngrams, τ, etc.)
+	Weights    *HybridWeights     `json:"weights,omitempty"`    // hybrid feature weights
+	FeatureMap map[string]map[uint]float64 `json:"feature_map,omitempty"` // n-gram probabilities for voting
 }
 
 // Sample represents a labeled training sample
